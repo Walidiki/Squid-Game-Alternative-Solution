@@ -1,0 +1,192 @@
+import java.util.*;
+public class NewGraph 
+{
+	public ArrayList<NewNode> vertices;
+	public ArrayList<Polytope> plytps;
+	public NewGraph()
+	{
+		this.vertices = new ArrayList<NewNode>();
+		this.plytps = new ArrayList<Polytope>();
+	}
+	public void findPolytopesByPartition(ArrayList<ArrayList<Integer>> partition)
+	{
+		for (int i = 0; i < partition.size(); i++)
+		{
+			ArrayList<Integer> vertexLengths = new ArrayList<>();
+			for (int j = 0; j < partition.get(i).size(); j++)
+			{
+				vertexLengths.add(partition.get(i).get(j) + 1);
+			}
+			int dimension = partition.get(i).size() - 1;
+			if (dimension > 0)
+			{
+				findPolytopesDriver(vertexLengths, dimension);
+			}
+			else
+			{
+				for (int j = 0; j < this.vertices.size(); j++)
+				{
+					if (this.vertices.get(j).elements.size() == vertexLengths.get(0))
+					{
+						Polytope plytp = new Polytope(dimension);
+						plytp.addVertex(this.vertices.get(j));
+						this.addPolytope(plytp);
+					}
+				}
+			}
+		}
+	}
+	public void findPolytopesDriver(ArrayList<Integer> vertexLengths, int dimension)
+	{
+		for (int i = 0; i < this.vertices.size(); i++)
+		{
+			if (vertices.get(i).elements.size() == vertexLengths.get(0))
+			{
+				for (int j = 0; j < vertices.get(i).neighbors.size(); j++)
+				{
+					if (this.vertices.get(i).neighbors.get(j).elements.size() == vertexLengths.get(1)
+						&& this.vertices.get(i).elements.get(0) < this.vertices.get(i).neighbors.get(j).elements.get(0))
+					{
+						ArrayList<NewNode> prospectivePolytope = new ArrayList<>();
+						prospectivePolytope.add(this.vertices.get(i));
+						prospectivePolytope.add(this.vertices.get(i).neighbors.get(j));
+						if (vertexLengths.size() > 2)
+						{
+							findPolytopes(prospectivePolytope, vertexLengths, 2);
+						}
+						else
+						{
+							Polytope plytp = new Polytope(dimension);
+							plytp.addVertex(prospectivePolytope.get(0));
+							plytp.addVertex(prospectivePolytope.get(1));
+							this.addPolytope(plytp);
+						}
+					}
+				}
+			}
+		}
+	}
+	public void findPolytopes(ArrayList<NewNode>prospectivePolytope, ArrayList<Integer> vertexLengths, int nthVertex)
+	{
+		System.out.println("nthVertex = " + nthVertex);
+		System.out.println("vertexLengths.size() = " + vertexLengths.size());
+		if (nthVertex == vertexLengths.size())
+		{
+			Polytope plytp = new Polytope(nthVertex - 1);
+			for (int i = 0; i < prospectivePolytope.size(); i++)
+			{
+				plytp.addVertex(prospectivePolytope.get(i));
+			}
+			this.plytps.add(plytp);
+			System.out.print("Dimension: " + plytp.dimension + "; Vertices: ");
+			for (int j = 0; j < plytp.vertices.size(); j++)
+			{
+				System.out.print("[");
+				for (int k = 0; k < plytp.vertices.get(j).elements.size() - 1; k++)
+				{
+					System.out.print(plytp.vertices.get(j).elements.get(k) + ", ");
+				}
+				System.out.print(plytp.vertices.get(j).elements.get(plytp.vertices.get(j).elements.size() - 1) + "]; ");
+			}
+			System.out.println();
+			return;
+		}
+		for (int i = 0; i < prospectivePolytope.get(nthVertex - 1).neighbors.size(); i++)
+		{
+			System.out.println("====================================");
+			System.out.println("nthVertex = " + nthVertex);
+			System.out.println("vertexLengths.size() = " + vertexLengths.size());
+			System.out.println("vertexLengths.get(nthVertex) = " + vertexLengths.get(nthVertex));
+			if (prospectivePolytope.get(nthVertex - 1).neighbors.get(i).elements.size() == vertexLengths.get(nthVertex))
+			{
+				boolean valid = true;
+				boolean repeat = false;
+				for (int j = 0; j < prospectivePolytope.size() - 1; j++)
+				{
+					if (!Collections.disjoint(prospectivePolytope.get(j).elements, prospectivePolytope.get(nthVertex - 1).neighbors.get(i).elements) )
+					{
+						valid = false;
+					}
+					/*if (j > 0)
+					{
+						if (prospectivePolytope.get(j).elements.get(0) > prospectivePolytope.get(nthVertex - 1).neighbors.get(i).elements.get(0))
+						{
+							valid = false;
+						}
+					}*/
+				}
+				if (valid)
+				{
+					for (int j = 1; j < prospectivePolytope.size(); j++)
+					{
+						if (prospectivePolytope.get(nthVertex - 1).neighbors.get(i).elements.get(0) < prospectivePolytope.get(j).elements.get(0))
+						{
+							repeat = true;
+						}
+					}
+				}
+				if (valid && !repeat)
+				{
+					prospectivePolytope.add(prospectivePolytope.get(nthVertex - 1).neighbors.get(i));
+					nthVertex++;
+					System.out.println("Recurse:");
+					findPolytopes(prospectivePolytope, vertexLengths, nthVertex);
+					prospectivePolytope.remove(prospectivePolytope.get(prospectivePolytope.size() - 1));
+					nthVertex--;
+				}
+			}
+		}
+		return;
+	}
+	public void addPolytope(Polytope plytp)
+	{
+		this.plytps.add(plytp);
+	}
+	public void addVertex(NewNode vertex)
+	{
+		this.vertices.add(vertex);
+	}
+	public void findNetworks()
+	{
+		for (int i = 0; i < this.vertices.size(); i++)
+		{
+			this.vertices.get(i).setNeighbors(this, i);
+		}
+	}
+	public void displayPolytopes()
+	{
+		for (int i = 0; i < plytps.size(); i++)
+		{
+			System.out.print("Dimension: " + plytps.get(i).dimension + "; Vertices: ");
+			for (int j = 0; j < plytps.get(i).vertices.size(); j++)
+			{
+				System.out.print("[");
+				for (int k = 0; k < plytps.get(i).vertices.get(j).elements.size() - 1; k++)
+				{
+					System.out.print(plytps.get(i).vertices.get(j).elements.get(k) + ", ");
+				}
+				System.out.print(plytps.get(i).vertices.get(j).elements.get(plytps.get(i).vertices.get(j).elements.size() - 1) + "]; ");
+			}
+			System.out.println();
+		}
+	}
+	public void displayNetworks()
+	{
+		for (int i = 0; i < this.vertices.size(); i++)
+		{
+			System.out.print(this.vertices.get(i).elements + " -> ");
+			for (int j = 0; j < this.vertices.get(i).neighbors.size() - 1; j++)
+			{
+				System.out.print(this.vertices.get(i).neighbors.get(j).elements + "; ");
+			}
+			if (this.vertices.get(i).neighbors.size() > 1)
+			{
+				System.out.print(this.vertices.get(i).neighbors.get(this.vertices.get(i).neighbors.size() - 1).elements + "\n");
+			}
+			else
+			{
+				System.out.print("\n");
+			}
+		}
+	}
+}
