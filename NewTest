@@ -1,0 +1,115 @@
+import java.util.*;
+public class NewTest 
+{
+	public static void main(String[] args)
+	{
+		Scanner inp = new Scanner(System.in);
+		System.out.println("Enter number of lines: ");
+		int x = inp.nextInt();
+		System.out.println("Enter number of players (must be equal to or greater than number of lines): ");
+		int n = inp.nextInt();
+		NewGraph NG = new NewGraph();
+		ArrayList<ArrayList<Integer>> partition = interpret(partition(n - x));
+		ArrayList<ArrayList<Integer>> vertices = cartographer(n, NG);
+		vertices = _arrangements(n - x, vertices, n, x, NG);
+		NG.findNetworks();
+		System.out.println("=============");
+		NG.displayNetworks();
+		System.out.println("==================================================================================");
+		NG.findPolytopesByPartition(partition);
+		NG.displayPolytopes();
+		
+	}
+	
+	
+	public static String partition(int partee) 
+	{
+		return partition(partee, partee, " |").substring(3);
+	}
+	public static String partition(int partee, int max, String sum) 
+	{
+		String returnpartition = "";
+		if (partee == 0)
+		{
+			return sum;
+		}
+		for (int i = Math.min(max, partee); i > 0; i--)
+		{
+			returnpartition += partition(partee - i, i, sum + " " + i);
+		}
+		return returnpartition;
+	}
+	public static ArrayList<ArrayList<Integer>> interpret(String _partition) 
+	{
+		ArrayList<ArrayList<Integer>> partition = new ArrayList<>();
+		int index = -1;
+		for (String sum : _partition.split(" \\| ")) 
+		{
+			index++;
+			partition.add(new ArrayList<>());
+			for (String addend: sum.split(" ")) 
+			{
+				partition.get(index).add(Integer.valueOf(addend));
+			}
+		}
+		return partition;
+	}
+	public static ArrayList<ArrayList<Integer>> cartographer(int n, NewGraph NG)
+	{
+		ArrayList<ArrayList<Integer>> pairs = new ArrayList<>();
+		for (int i = 1; i <= n; i++)
+		{
+			for (int j = i; j <= n; j++)
+			{
+				if (i != j)
+				{
+					if (Math.sqrt(i + j) - Math.floor(Math.sqrt(i + j)) == 0)
+					{
+						ArrayList<Integer> tuple = new ArrayList<>();
+						tuple.add(i);
+						tuple.add(j);
+						pairs.add(tuple);
+						NewNode node = new NewNode(tuple);
+						NG.addVertex(node);
+					}
+				}
+			}
+		}
+		return pairs;
+	}
+	public static ArrayList<ArrayList<Integer>> _arrangements(int magnitude, ArrayList<ArrayList<Integer>> pairs, int n, int x, NewGraph NG)
+	{
+		if (magnitude > n - x)
+		{
+			return pairs;
+		}
+		for (int i = 3; i <= n; i++)
+		{
+			for (int j = 0; j < pairs.size(); j++)
+			{
+				if ((i != pairs.get(j).get(pairs.get(j).size() - 1)) && (i > pairs.get(j).get(pairs.get(j).size() - 1)))
+				{
+					if (Math.sqrt(i + pairs.get(j).get(pairs.get(j).size() - 1)) == Math.floor(Math.sqrt(i + pairs.get(j).get(pairs.get(j).size() - 1))) && pairs.get(j).size() < n - x + 1)
+					{
+						ArrayList<Integer> tuple = new ArrayList<>();
+						for (int k = 0; k < pairs.get(j).size(); k++)
+						{
+							tuple.add(pairs.get(j).get(k));
+						}
+						tuple.add(i);
+						pairs.add(tuple);
+						NewNode node = new NewNode(tuple);
+						NG.addVertex(node);
+					}
+				}
+			}
+		}
+		magnitude++;
+		_arrangements(magnitude, pairs, n, x, NG);
+		for (int i = 0; i < pairs.size(); i++)
+		{
+			System.out.println(pairs.get(i));
+		}
+		return pairs;
+	}
+}
