@@ -13,7 +13,8 @@ public class NewTest
 		ArrayList<ArrayList<Integer>> vertices = cartographer(n, NG);
 		vertices = _arrangements(n - x, vertices, n, x, NG);
 		NG.findNetworks();
-		System.out.println("=============");
+		System.out.println("===================================================================");
+		System.out.println("Neighbors/Edges: ");
 		NG.displayNetworks();
 		System.out.println("==================================================================================");
 		NG.findPolytopesByPartition(partition);
@@ -107,6 +108,7 @@ public class NewTest
 		}
 		magnitude++;
 		_arrangements(magnitude, pairs, n, x, NG);
+		System.out.println("Nodes: ");
 		for (int i = 0; i < pairs.size(); i++)
 		{
 			System.out.println(pairs.get(i));
