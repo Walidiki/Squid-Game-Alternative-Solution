@@ -18,7 +18,8 @@ public class NewTest
 		System.out.println("==================================================================================");
 		NG.findPolytopesByPartition(partition);
 		NG.displayPolytopes();
-		
+		System.out.println("==================================================");
+		System.out.println("Number of solutions: " + NG.plytps.size());
 	}
 	
 	
