@@ -68,8 +68,6 @@ public class NewGraph
 	}
 	public void findPolytopes(ArrayList<NewNode>prospectivePolytope, ArrayList<Integer> vertexLengths, int nthVertex)
 	{
-		System.out.println("nthVertex = " + nthVertex);
-		System.out.println("vertexLengths.size() = " + vertexLengths.size());
 		if (nthVertex == vertexLengths.size())
 		{
 			Polytope plytp = new Polytope(nthVertex - 1);
@@ -78,25 +76,10 @@ public class NewGraph
 				plytp.addVertex(prospectivePolytope.get(i));
 			}
 			this.plytps.add(plytp);
-			System.out.print("Dimension: " + plytp.dimension + "; Vertices: ");
-			for (int j = 0; j < plytp.vertices.size(); j++)
-			{
-				System.out.print("[");
-				for (int k = 0; k < plytp.vertices.get(j).elements.size() - 1; k++)
-				{
-					System.out.print(plytp.vertices.get(j).elements.get(k) + ", ");
-				}
-				System.out.print(plytp.vertices.get(j).elements.get(plytp.vertices.get(j).elements.size() - 1) + "]; ");
-			}
-			System.out.println();
 			return;
 		}
 		for (int i = 0; i < prospectivePolytope.get(nthVertex - 1).neighbors.size(); i++)
 		{
-			System.out.println("====================================");
-			System.out.println("nthVertex = " + nthVertex);
-			System.out.println("vertexLengths.size() = " + vertexLengths.size());
-			System.out.println("vertexLengths.get(nthVertex) = " + vertexLengths.get(nthVertex));
 			if (prospectivePolytope.get(nthVertex - 1).neighbors.get(i).elements.size() == vertexLengths.get(nthVertex))
 			{
 				boolean valid = true;
@@ -107,13 +90,6 @@ public class NewGraph
 					{
 						valid = false;
 					}
-					/*if (j > 0)
-					{
-						if (prospectivePolytope.get(j).elements.get(0) > prospectivePolytope.get(nthVertex - 1).neighbors.get(i).elements.get(0))
-						{
-							valid = false;
-						}
-					}*/
 				}
 				if (valid)
 				{
@@ -129,7 +105,6 @@ public class NewGraph
 				{
 					prospectivePolytope.add(prospectivePolytope.get(nthVertex - 1).neighbors.get(i));
 					nthVertex++;
-					System.out.println("Recurse:");
 					findPolytopes(prospectivePolytope, vertexLengths, nthVertex);
 					prospectivePolytope.remove(prospectivePolytope.get(prospectivePolytope.size() - 1));
 					nthVertex--;
