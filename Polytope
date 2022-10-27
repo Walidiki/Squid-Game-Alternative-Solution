@@ -1,0 +1,15 @@
+import java.util.*;
+public class Polytope 
+{
+	public int dimension;
+	public ArrayList<NewNode> vertices;
+	public Polytope(int dimension)
+	{
+		this.dimension = dimension;
+		this.vertices = new ArrayList<NewNode>();
+	}
+	public void addVertex(NewNode node)
+	{
+		this.vertices.add(node);
+	}
+}
