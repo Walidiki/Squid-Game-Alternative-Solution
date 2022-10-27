@@ -1,0 +1,23 @@
+import java.util.*;
+public class NewNode 
+{
+	public ArrayList<Integer> elements;
+	public ArrayList<NewNode> neighbors;
+	public int magnitude;
+	public NewNode(ArrayList<Integer> elements)
+	{
+		this.elements = elements;
+		this.magnitude = elements.size();
+		this.neighbors = new ArrayList<NewNode>();
+	}
+	public void setNeighbors(NewGraph NG, int index)
+	{
+		for (int i = 0; i < NG.vertices.size(); i++)
+		{
+			if (Collections.disjoint(this.elements, NG.vertices.get(i).elements))
+			{
+				this.neighbors.add(NG.vertices.get(i));
+			}
+		}
+	}
+}
