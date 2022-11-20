@@ -2,22 +2,29 @@ import java.util.*;
 public class NewNode 
 {
 	public ArrayList<Integer> elements;
-	public ArrayList<NewNode> neighbors;
+	public ArrayList<ArrayList<NewNode>> neighborsByMagnitude;
 	public int magnitude;
-	public NewNode(ArrayList<Integer> elements)
+	public int maxDifference;
+	public NewNode(ArrayList<Integer> elements, int maxDifference)
 	{
 		this.elements = elements;
 		this.magnitude = elements.size();
-		this.neighbors = new ArrayList<NewNode>();
+		this.maxDifference = maxDifference;
+		this.neighborsByMagnitude = new ArrayList<ArrayList<NewNode>>();
 	}
-	public void setNeighbors(NewGraph NG, int index)
+	public void setNeighbors(NewGraph NG)
 	{
+		for (int i = 0; i < this.maxDifference + 1; i++)
+		{
+			this.neighborsByMagnitude.add(new ArrayList<NewNode>());
+		}
 		for (int i = 0; i < NG.vertices.size(); i++)
 		{
 			if (Collections.disjoint(this.elements, NG.vertices.get(i).elements))
 			{
-				this.neighbors.add(NG.vertices.get(i));
+				this.neighborsByMagnitude.get(NG.vertices.get(i).elements.size() - 1).add(NG.vertices.get(i));
 			}
 		}
 	}
 }
+
