@@ -1,29 +1,55 @@
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.PrintStream;
 import java.util.*;
 public class NewTest 
 {
-	public static void main(String[] args)
+	public static void main(String[] args) throws FileNotFoundException
 	{
 		Scanner inp = new Scanner(System.in);
 		System.out.println("Enter number of lines: ");
 		int x = inp.nextInt();
 		System.out.println("Enter number of players (must be equal to or greater than number of lines): ");
-		int n = inp.nextInt();
-		NewGraph NG = new NewGraph();
-		ArrayList<ArrayList<Integer>> partition = interpret(partition(n - x));
-		ArrayList<ArrayList<Integer>> vertices = cartographer(n, NG);
-		vertices = _arrangements(n - x, vertices, n, x, NG);
-		NG.findNetworks();
-		System.out.println("===================================================================");
-		System.out.println("Neighbors/Edges: ");
-		NG.displayNetworks();
-		System.out.println("==================================================================================");
-		NG.findPolytopesByPartition(partition);
-		NG.displayPolytopes();
-		System.out.println("==================================================");
-		System.out.println("Number of solutions: " + NG.plytps.size());
+	    int n = inp.nextInt();
+	    inp.close();
+	    FileOutputStream out = new FileOutputStream("SquidGameTest " + x + "-" + n + ".txt");
+		PrintStream ps = new PrintStream(out);
+		ps.print("x = " + x + "\nn = " + n +"\n==========");
+	    int solutions = StudentSolver(x, n, ps);
+	    System.out.println("s = " + solutions);
 	}
-	
-	
+	public static int StudentSolver(int x, int n, PrintStream ps) throws FileNotFoundException
+	{
+		
+		if (x == 0 || n == 0)
+		{
+			return 0;
+		}
+		if (x == n)
+		{
+			// System.out.println("Same number of players as queues");
+			return 1;
+		}
+		else if (x > n)
+		{
+			return 0;
+		}
+		NewGraph NG = new NewGraph(ps);
+		ArrayList<ArrayList<Integer>> partition = interpret(partition(n - x));
+		ArrayList<ArrayList<Integer>> vertices = cartographer(n, x, NG);
+		vertices = _arrangements(n - x, vertices, n, x, NG, ps);
+		NG.findNetworks();
+		ps.println("===================================================================");
+		ps.println("Neighbors/Edges: ");
+		NG.displayNetworks();
+		ps.println("==================================================================================");
+		NG.findPolytopesByPartition(partition);
+		//System.out.println("Polytopes: ");
+		ps.println("==================================================");
+		ps.println("Number of solutions for " + n + " players and " + x + " lines: " + NG.plytps.size());
+		ps.close();
+		return NG.plytps.size();
+	}
 	public static String partition(int partee) 
 	{
 		return partition(partee, partee, " |").substring(3);
@@ -56,7 +82,7 @@ public class NewTest
 		}
 		return partition;
 	}
-	public static ArrayList<ArrayList<Integer>> cartographer(int n, NewGraph NG)
+	public static ArrayList<ArrayList<Integer>> cartographer(int n, int x, NewGraph NG)
 	{
 		ArrayList<ArrayList<Integer>> pairs = new ArrayList<>();
 		for (int i = 1; i <= n; i++)
@@ -71,7 +97,7 @@ public class NewTest
 						tuple.add(i);
 						tuple.add(j);
 						pairs.add(tuple);
-						NewNode node = new NewNode(tuple);
+						NewNode node = new NewNode(tuple, n - x);
 						NG.addVertex(node);
 					}
 				}
@@ -79,7 +105,7 @@ public class NewTest
 		}
 		return pairs;
 	}
-	public static ArrayList<ArrayList<Integer>> _arrangements(int magnitude, ArrayList<ArrayList<Integer>> pairs, int n, int x, NewGraph NG)
+	public static ArrayList<ArrayList<Integer>> _arrangements(int magnitude, ArrayList<ArrayList<Integer>> pairs, int n, int x, NewGraph NG, PrintStream ps)
 	{
 		if (magnitude > n - x)
 		{
@@ -100,18 +126,18 @@ public class NewTest
 						}
 						tuple.add(i);
 						pairs.add(tuple);
-						NewNode node = new NewNode(tuple);
+						NewNode node = new NewNode(tuple, n - x);
 						NG.addVertex(node);
 					}
 				}
 			}
 		}
 		magnitude++;
-		_arrangements(magnitude, pairs, n, x, NG);
-		System.out.println("Nodes: ");
+		_arrangements(magnitude, pairs, n, x, NG, ps);
+		ps.println("Nodes: ");
 		for (int i = 0; i < pairs.size(); i++)
 		{
-			System.out.println(pairs.get(i));
+			ps.print(pairs.get(i) + "\n");
 		}
 		return pairs;
 	}
