@@ -1,12 +1,18 @@
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.PrintStream;
 import java.util.*;
 public class NewGraph 
 {
 	public ArrayList<NewNode> vertices;
 	public ArrayList<Polytope> plytps;
-	public NewGraph()
+	public FileOutputStream out;
+	public PrintStream ps;
+	public NewGraph(PrintStream ps) throws FileNotFoundException
 	{
 		this.vertices = new ArrayList<NewNode>();
 		this.plytps = new ArrayList<Polytope>();
+		this.ps = ps;
 	}
 	public void findPolytopesByPartition(ArrayList<ArrayList<Integer>> partition)
 	{
@@ -18,9 +24,22 @@ public class NewGraph
 				vertexLengths.add(partition.get(i).get(j) + 1);
 			}
 			int dimension = partition.get(i).size() - 1;
+			this.ps.print("Finding polytopes of dimension " + dimension + " in graph.\n");
 			if (dimension > 0)
 			{
-				findPolytopesDriver(vertexLengths, dimension);
+				boolean contains = false;
+				for (int j = 0; j < this.vertices.size(); j++)
+				{
+					if (this.vertices.get(j).elements.size() == Collections.max(vertexLengths))
+					{
+						contains = true;
+						break;
+					}
+				}
+				if (contains)
+				{
+					findPolytopesDriver(vertexLengths, dimension);
+				}
 			}
 			else
 			{
@@ -31,6 +50,7 @@ public class NewGraph
 						Polytope plytp = new Polytope(dimension);
 						plytp.addVertex(this.vertices.get(j));
 						this.addPolytope(plytp);
+						displayPolytope(plytp);
 					}
 				}
 			}
@@ -42,14 +62,13 @@ public class NewGraph
 		{
 			if (vertices.get(i).elements.size() == vertexLengths.get(0))
 			{
-				for (int j = 0; j < vertices.get(i).neighbors.size(); j++)
+				for (int j = 0; j < vertices.get(i).neighborsByMagnitude.get(vertexLengths.get(1) - 1).size(); j++)
 				{
-					if (this.vertices.get(i).neighbors.get(j).elements.size() == vertexLengths.get(1)
-						&& this.vertices.get(i).elements.get(0) < this.vertices.get(i).neighbors.get(j).elements.get(0))
+					if (this.vertices.get(i).elements.get(0) < this.vertices.get(i).neighborsByMagnitude.get(vertexLengths.get(1) - 1).get(j).elements.get(0))
 					{
 						ArrayList<NewNode> prospectivePolytope = new ArrayList<>();
 						prospectivePolytope.add(this.vertices.get(i));
-						prospectivePolytope.add(this.vertices.get(i).neighbors.get(j));
+						prospectivePolytope.add(this.vertices.get(i).neighborsByMagnitude.get(vertexLengths.get(1) - 1).get(j));
 						if (vertexLengths.size() > 2)
 						{
 							findPolytopes(prospectivePolytope, vertexLengths, 2);
@@ -60,6 +79,7 @@ public class NewGraph
 							plytp.addVertex(prospectivePolytope.get(0));
 							plytp.addVertex(prospectivePolytope.get(1));
 							this.addPolytope(plytp);
+							displayPolytope(plytp);
 						}
 					}
 				}
@@ -76,39 +96,35 @@ public class NewGraph
 				plytp.addVertex(prospectivePolytope.get(i));
 			}
 			this.plytps.add(plytp);
+			displayPolytope(plytp);
 			return;
 		}
-		for (int i = 0; i < prospectivePolytope.get(nthVertex - 1).neighbors.size(); i++)
+		for (int i = 0; i < prospectivePolytope.get(nthVertex - 1).neighborsByMagnitude.get(vertexLengths.get(nthVertex - 1) - 1).size(); i++)
 		{
-			if (prospectivePolytope.get(nthVertex - 1).neighbors.get(i).elements.size() == vertexLengths.get(nthVertex))
+			boolean valid = true;
+			boolean repeat = false;
+			for (int j = 0; j < prospectivePolytope.size() - 1; j++)
 			{
-				boolean valid = true;
-				boolean repeat = false;
-				for (int j = 0; j < prospectivePolytope.size() - 1; j++)
+				if (!Collections.disjoint(prospectivePolytope.get(j).elements, prospectivePolytope.get(nthVertex - 1).neighborsByMagnitude.get(vertexLengths.get(nthVertex - 1) - 1).get(i).elements) )
 				{
-					if (!Collections.disjoint(prospectivePolytope.get(j).elements, prospectivePolytope.get(nthVertex - 1).neighbors.get(i).elements) )
+					valid = false;
+				}
+			}
+			if (valid)
+			{
+				for (int j = 1; j < prospectivePolytope.size(); j++)
+				{
+					if (prospectivePolytope.get(nthVertex - 1).neighborsByMagnitude.get(vertexLengths.get(nthVertex - 1) - 1).get(i).elements.get(0) < prospectivePolytope.get(j).elements.get(0))
 					{
-						valid = false;
+						repeat = true;
 					}
 				}
-				if (valid)
-				{
-					for (int j = 1; j < prospectivePolytope.size(); j++)
-					{
-						if (prospectivePolytope.get(nthVertex - 1).neighbors.get(i).elements.get(0) < prospectivePolytope.get(j).elements.get(0))
-						{
-							repeat = true;
-						}
-					}
-				}
-				if (valid && !repeat)
-				{
-					prospectivePolytope.add(prospectivePolytope.get(nthVertex - 1).neighbors.get(i));
-					nthVertex++;
-					findPolytopes(prospectivePolytope, vertexLengths, nthVertex);
-					prospectivePolytope.remove(prospectivePolytope.get(prospectivePolytope.size() - 1));
-					nthVertex--;
-				}
+			}
+			if (valid && !repeat)
+			{
+				prospectivePolytope.add(prospectivePolytope.get(nthVertex - 1).neighborsByMagnitude.get(vertexLengths.get(nthVertex - 1) - 1).get(i));
+				findPolytopes(prospectivePolytope, vertexLengths, nthVertex + 1);
+				prospectivePolytope.remove(prospectivePolytope.get(prospectivePolytope.size() - 1));
 			}
 		}
 		return;
@@ -125,43 +141,52 @@ public class NewGraph
 	{
 		for (int i = 0; i < this.vertices.size(); i++)
 		{
-			this.vertices.get(i).setNeighbors(this, i);
+			this.vertices.get(i).setNeighbors(this);
 		}
+	}
+	public void displayPolytope(Polytope plytp)
+	{
+		
+		this.ps.print("Dimension: " + plytp.dimension + "; Vertices: ");
+		for (int j = 0; j < plytp.vertices.size(); j++)
+		{
+			this.ps.print("[");
+			for (int k = 0; k < plytp.vertices.get(j).elements.size() - 1; k++)
+			{
+				this.ps.print(plytp.vertices.get(j).elements.get(k) + ", ");
+			}
+			this.ps.print(plytp.vertices.get(j).elements.get(plytp.vertices.get(j).elements.size() - 1) + "]; ");
+		}
+		this.ps.print("\n");
 	}
 	public void displayPolytopes()
 	{
 		for (int i = 0; i < plytps.size(); i++)
 		{
-			System.out.print("Dimension: " + plytps.get(i).dimension + "; Vertices: ");
+			this.ps.print("Dimension: " + plytps.get(i).dimension + "; Vertices: ");
 			for (int j = 0; j < plytps.get(i).vertices.size(); j++)
 			{
 				System.out.print("[");
 				for (int k = 0; k < plytps.get(i).vertices.get(j).elements.size() - 1; k++)
 				{
-					System.out.print(plytps.get(i).vertices.get(j).elements.get(k) + ", ");
+					this.ps.print(plytps.get(i).vertices.get(j).elements.get(k) + ", ");
 				}
-				System.out.print(plytps.get(i).vertices.get(j).elements.get(plytps.get(i).vertices.get(j).elements.size() - 1) + "]; ");
+				this.ps.print(plytps.get(i).vertices.get(j).elements.get(plytps.get(i).vertices.get(j).elements.size() - 1) + "]; ");
 			}
-			System.out.println();
+			this.ps.print("\n");
 		}
 	}
 	public void displayNetworks()
 	{
 		for (int i = 0; i < this.vertices.size(); i++)
 		{
-			System.out.print(this.vertices.get(i).elements + " -> ");
-			for (int j = 0; j < this.vertices.get(i).neighbors.size() - 1; j++)
-			{
-				System.out.print(this.vertices.get(i).neighbors.get(j).elements + "; ");
-			}
-			if (this.vertices.get(i).neighbors.size() > 1)
-			{
-				System.out.print(this.vertices.get(i).neighbors.get(this.vertices.get(i).neighbors.size() - 1).elements + "\n");
-			}
-			else
-			{
-				System.out.print("\n");
-			}
+			this.ps.print(this.vertices.get(i).elements + " -> ");
+			for (int j = 1; j < this.vertices.get(i).neighborsByMagnitude.size(); j++)
+				for (int k = 0; k < this.vertices.get(i).neighborsByMagnitude.get(j).size(); k++)
+				{
+					this.ps.print(this.vertices.get(i).neighborsByMagnitude.get(j).get(k).elements + "; ");
+				}
+			this.ps.print("\n");
 		}
 	}
 }
